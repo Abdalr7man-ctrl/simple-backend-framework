@@ -1,56 +1,46 @@
 import socket
 import json
+from http_handler import HttpRequest, HttpResponse # XXX: .http_handler
 
-socket_server = socket.socket(
-    socket.AF_INET,
-    socket.SOCK_STREAM
-    )
 
-HOST = '0.0.0.0'
-PORT = 8080
+class Server:
+    def __init__(self, URLs: dict) -> None:
+        self.socket_server = socket.socket(
+            socket.AF_INET,
+            socket.SOCK_STREAM
+            )
+        self.URLs = URLs
 
-socket_server.bind((HOST, PORT))
+    def run(self, HOST: str, PORT: int):
+        self.socket_server.bind((HOST, PORT))
+        self.socket_server.listen()
+        print(f"The server is run at http://{HOST}:{PORT}")
 
-print(f"The server is run at http://{HOST}:{PORT}")
+        while True:
+            try:
+                client, addr = self.socket_server.accept()
+                packets = client.recv(1024)
 
-socket_server.listen()
+                http_request = packets.decode()
 
-def create_response(msg, response_statutes="200 OK"):
-    return f"""HTTP/1.1 {response_statutes}
-content-type: text/html
+                request = HttpRequest(http_request)
 
-{msg}
-        """
+                try:
+                    http_response = self.URLs[request.path](request=request)
+                except KeyError:
+                    http_response = HttpResponse(404, 'Not Found', '<h1>Not Found Page 404</h1>')
 
-while True:
-    try:
-        client, addr = socket_server.accept()
-        packets = client.recv(1024)
+                print(request.method, request.path, "HTTP/1.1")
 
-        # to see the raw text
-        # print(packets, end='\n\n\n\n\n')
+                client.send(http_response.body.encode())
 
-        http_request = packets.decode()
-        print(http_request)
+                client.close()
+            except KeyboardInterrupt:
+                print("\nBey Bey...")
+                break
 
-        status_line = http_request.split('\n')[0]
-        path = status_line.split(' ')[1]
-
-        http_response = ''
-
-        if path == '/':
-            http_response = create_response('<h1> Hello, Root! <h1>')
-        elif path == '/home':
-            http_response = create_response('<h1> Hello, Home! <h1>')
-        else:
-            http_response = create_response('<h1> Error Page Not Found :(<h1>', '404 Not Found')
-
-        client.send(http_response.encode())
-
-        client.close()
-    except KeyboardInterrupt:
-        print("\nBey Bey...")
-        break
 
 # solve this problem `search about the reason`
 # TODO: OSError: [Errno 98] Address already in use
+# TODO: use strip() to remove the space in the values in the headers in http_requests
+# TODO: is there space in the path URL solve it

@@ -2,6 +2,7 @@
 Hmmmmm
 """
 
+
 class HttpRequest:
     method = None
     path = None
@@ -14,25 +15,45 @@ class HttpRequest:
         request_line = http_lines[0]
         self.method = request_line.split(' ')[0]
         self.path = request_line.split(' ')[1]
-        
+        # header of the HTTP request
         start_body_index = 0
-
         for line in http_lines[1:]:
             if not line:
                 start_body_index = http_lines.index(line) + 1
                 break
             pair = line.split(': ')
             self.headers[pair[0]] = pair[1]
-
         self.body = http_lines[start_body_index:] # body lines in list
+        # params of the HTTP
+        if '?' not in self.path:
+            return
+        params_part = self.path.split('?')[1]
+        params_part = params_part.split('&')
+        for param in params_part:
+            self.params[param.split('=')[0]] = param.split('=')[1]
+        self.path = self.path.split('?')[0]
 
-class HttpResponse: ...
+
+class HttpResponse:
+    def __init__(self, status_code, status_msg, body, content_type='text/html') -> None:
+        self.status_code = status_code
+        self.status_msg = status_msg
+        self.body = body
+        self.content_type = content_type
+
+    @property
+    def to_http_response(self):
+        return f"""HTTP/1.1 {self.status_code} {self.status_msg}
+content-type: {self.content_type}
+
+{self.body}
+"""
 
 
 if __name__ == "__main__":
-    myRequest = HttpRequest('GET / HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nUser-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nAccept-Language: en-US,en;q=0.5\r\nAccept-Encoding: gzip, deflate, br, zstd\r\nConnection: keep-alive\r\nUpgrade-Insecure-Requests: 1\r\nSec-Fetch-Dest: document\r\nSec-Fetch-Mode: navigate\r\nSec-Fetch-Site: cross-site\r\nPriority: u=0, i\r\n\r\n<h1> Hello World<h1>')
+    myRequest = HttpRequest('GET /home/user/1?name=abdalrhman HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nUser-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nAccept-Language: en-US,en;q=0.5\r\nAccept-Encoding: gzip, deflate, br, zstd\r\nConnection: keep-alive\r\nUpgrade-Insecure-Requests: 1\r\nSec-Fetch-Dest: document\r\nSec-Fetch-Mode: navigate\r\nSec-Fetch-Site: cross-site\r\nPriority: u=0, i\r\n\r\n<h1> Hello World<h1>')
     print(myRequest.method)
     print(myRequest.path)
     print(myRequest.headers)
     print(myRequest.body)
-    # print(myRequest.)
+    print(myRequest.params)
