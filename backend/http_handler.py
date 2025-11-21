@@ -14,6 +14,9 @@ class HttpRequest:
         http_lines = http_plaintext.split('\r\n')
         request_line = http_lines[0]
         self.method = request_line.split(' ')[0]
+        if not request_line:
+            # print(f"That is plain text:\n\n{http_plaintext}\n\n")
+            return # ignore empty lines
         self.path = request_line.split(' ')[1]
         # header of the HTTP request
         start_body_index = 0
@@ -33,6 +36,9 @@ class HttpRequest:
             self.params[param.split('=')[0]] = param.split('=')[1]
         self.path = self.path.split('?')[0]
 
+    def __str__(self) -> str:
+        pass
+
 
 class HttpResponse:
     def __init__(self, status_code, status_msg, body, content_type='text/html') -> None:
@@ -44,7 +50,7 @@ class HttpResponse:
     @property
     def to_http_response(self):
         return f"""HTTP/1.1 {self.status_code} {self.status_msg}
-content-type: {self.content_type}
+Content-Type: {self.content_type}
 
 {self.body}
 """
