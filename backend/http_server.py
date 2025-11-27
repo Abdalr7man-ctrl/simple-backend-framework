@@ -9,6 +9,7 @@ class Server:
             socket.AF_INET,
             socket.SOCK_STREAM
             )
+        self.socket_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.URLs = URLs
         self.middlewares = middlewares
 
@@ -41,9 +42,3 @@ class Server:
             except KeyboardInterrupt:
                 print("\nBey Bey...")
                 break
-
-
-# solve this problem `search about the reason`
-# TODO: OSError: [Errno 98] Address already in use
-# TODO: use strip() to remove the space in the values in the headers in http_requests
-# TODO: is there space in the path URL solve it

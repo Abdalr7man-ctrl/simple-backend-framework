@@ -30,9 +30,6 @@ middlewares = [
     user_auth
 ]
 
-# TODO
-# challenge: can i use URL like that --> /path/to/{id}
-# hint it will be doing by another object not by dict & pars the `path` and the `parameters`
 
 app = Server({'/': home,
     '/about': about,
